@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Meme Submission</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #222; color: #eee; }
+  #cmdline { background: black; color: lime; padding: 10px; font-family: monospace; white-space: pre; }
+  input[type=text] { width: 300px; }
+</style>
+</head>
+<body>
+  <h1>Meme Submission</h1>
+  <div id="cmdline">Press start to begin...</div>
+  <br/>
+  <button id="startBtn">Start</button>
+  <br/><br/>
+  <input type="text" id="memeInput" placeholder="Type your meme here..."/>
+  <button id="submitBtn">Submit</button>
+
+  <script>
+    const cmd = document.getElementById('cmdline');
+    const startBtn = document.getElementById('startBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const memeInput = document.getElementById('memeInput');
+
+    startBtn.addEventListener('click', () => {
+      cmd.textContent += "\nShow us what you got";
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      const memo = memeInput.value.trim();
+      if(!memo) return;
+      const res = await fetch('/submit', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({memo})
+      });
+      const data = await res.json();
+      cmd.textContent += "\n" + data.message;
+    });
+  </script>
+</body>
+</html>
