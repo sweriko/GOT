@@ -6,7 +6,7 @@
 <title>Meme Submission</title>
 <style>
   body { font-family: Arial, sans-serif; background: #222; color: #eee; }
-  #cmdline { background: black; color: lime; padding: 10px; font-family: monospace; white-space: pre; }
+  #cmdline { background: black; color: lime; padding: 10px; font-family: monospace; white-space: pre; overflow:auto; max-height:400px; }
   input[type=text] { width: 300px; }
 </style>
 </head>
@@ -16,7 +16,7 @@
   <br/>
   <button id="startBtn">Start</button>
   <br/><br/>
-  <input type="text" id="memeInput" placeholder="Type your meme here..."/>
+  <input type="text" id="memeInput" placeholder="Type your meme here... (min 10 chars)"/>
   <button id="submitBtn">Submit</button>
 
   <script>
@@ -31,14 +31,42 @@
 
     submitBtn.addEventListener('click', async () => {
       const memo = memeInput.value.trim();
-      if(!memo) return;
+      if(!memo || memo.length < 10) {
+        cmd.textContent += "\nSubmission too short! Please enter at least 10 chars.";
+        return;
+      }
+      cmd.textContent += "\nSubmitting meme...";
       const res = await fetch('/submit', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({memo})
       });
       const data = await res.json();
-      cmd.textContent += "\n" + data.message;
+      
+      // Print final result
+      cmd.textContent += "\n\n=== Final Result ===\n";
+      cmd.textContent += "Message: " + data.message + "\n\n";
+
+      if (data.chunkLogsCOP1) {
+        cmd.textContent += "=== COP1 Chunk Logs ===\n";
+        data.chunkLogsCOP1.forEach((log, i) => {
+          cmd.textContent += `Chunk ${i+1}: "${log.chunk}"\nTag: ${log.tag}, Summary: ${log.summary}\n\n`;
+        });
+      }
+
+      if (data.chunkLogsCOP2) {
+        cmd.textContent += "=== COP2 Chunk Logs ===\n";
+        data.chunkLogsCOP2.forEach((log, i) => {
+          cmd.textContent += `Chunk ${i+1}: "${log.chunk}"\nTag: ${log.tag}, Summary: ${log.summary}\n\n`;
+        });
+      }
+
+      if (data.stats) {
+        cmd.textContent += "=== Stats ===\n";
+        for (const k in data.stats) {
+          cmd.textContent += `${k}: ${data.stats[k]}\n`;
+        }
+      }
     });
   </script>
 </body>
